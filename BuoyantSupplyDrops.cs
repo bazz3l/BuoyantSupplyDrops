@@ -2,12 +2,12 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("Buoyant Supply Drops", "Bazz3l", "1.0.1")]
+    [Info("Buoyant Supply Drops", "Bazz3l", "1.0.2")]
     [Description("Allows supply drops to float on water")]
     class BuoyantSupplyDrops : RustPlugin
     {
         #region Config
-        public PluginConfig config;
+        public PluginConfig _config;
 
         public PluginConfig GetDefaultConfig()
         {
@@ -28,7 +28,7 @@ namespace Oxide.Plugins
 
         void Init()
         {
-            config = Config.ReadObject<PluginConfig>();
+            _config = Config.ReadObject<PluginConfig>();
         }
 
         void OnEntitySpawned(SupplyDrop supply)
@@ -36,7 +36,7 @@ namespace Oxide.Plugins
             if (supply == null) return;
             MakeBuoyant sfloat   = supply.gameObject.AddComponent<MakeBuoyant>();
             sfloat.buoyancyScale = 1f;
-            sfloat.detectionRate = config.DetectionRate;
+            sfloat.detectionRate = _config.DetectionRate;
         }
         #endregion
 
@@ -45,14 +45,26 @@ namespace Oxide.Plugins
         {
             public float buoyancyScale;
             public int detectionRate;
+            private SupplyDrop _supplyDrop;
+
+            void Awake()
+            {
+                _supplyDrop = GetComponent<SupplyDrop>();
+                if(_supplyDrop == null) Destroy(this);
+            }
 
             void FixedUpdate()
             {
-                if (UnityEngine.Time.frameCount % detectionRate == 0 && WaterLevel.Factor(GetComponent<BaseEntity>().WorldSpaceBounds().ToBounds()) > 0.65f)
+                if(_supplyDrop == null)
                 {
-                    SupplyDrop supply = GetComponent<SupplyDrop>();
-                    supply.RemoveParachute();
-                    supply.MakeLootable();
+                    Destroy(this);
+                    return;
+                }
+                
+                if (UnityEngine.Time.frameCount % detectionRate == 0 && WaterLevel.Factor(_supplyDrop.WorldSpaceBounds().ToBounds()) > 0.65f)
+                {
+                    _supplyDrop.RemoveParachute();
+                    _supplyDrop.MakeLootable();
                     BuoyancyComponent();
                     Destroy(this);
                 }
