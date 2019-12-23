@@ -7,7 +7,7 @@ namespace Oxide.Plugins
     class BuoyantSupplyDrops : RustPlugin
     {
         #region Config
-        public PluginConfig _config;
+        public PluginConfig config;
 
         public PluginConfig GetDefaultConfig()
         {
@@ -28,7 +28,7 @@ namespace Oxide.Plugins
 
         void Init()
         {
-            _config = Config.ReadObject<PluginConfig>();
+            config = Config.ReadObject<PluginConfig>();
         }
 
         void OnEntitySpawned(SupplyDrop supply)
@@ -36,7 +36,7 @@ namespace Oxide.Plugins
             if (supply == null) return;
             MakeBuoyant sfloat   = supply.gameObject.AddComponent<MakeBuoyant>();
             sfloat.buoyancyScale = 1f;
-            sfloat.detectionRate = _config.DetectionRate;
+            sfloat.detectionRate = config.DetectionRate;
         }
         #endregion
 
@@ -45,26 +45,26 @@ namespace Oxide.Plugins
         {
             public float buoyancyScale;
             public int detectionRate;
-            private SupplyDrop _supplyDrop;
+            private SupplyDrop supplyDrop;
 
             void Awake()
             {
-                _supplyDrop = GetComponent<SupplyDrop>();
-                if(_supplyDrop == null) Destroy(this);
+                supplyDrop = GetComponent<SupplyDrop>();
+                if(supplyDrop == null) Destroy(this);
             }
 
             void FixedUpdate()
             {
-                if(_supplyDrop == null)
+                if(supplyDrop == null)
                 {
                     Destroy(this);
                     return;
                 }
                 
-                if (UnityEngine.Time.frameCount % detectionRate == 0 && WaterLevel.Factor(_supplyDrop.WorldSpaceBounds().ToBounds()) > 0.65f)
+                if (UnityEngine.Time.frameCount % detectionRate == 0 && WaterLevel.Factor(supplyDrop.WorldSpaceBounds().ToBounds()) > 0.65f)
                 {
-                    _supplyDrop.RemoveParachute();
-                    _supplyDrop.MakeLootable();
+                    supplyDrop.RemoveParachute();
+                    supplyDrop.MakeLootable();
                     BuoyancyComponent();
                     Destroy(this);
                 }
