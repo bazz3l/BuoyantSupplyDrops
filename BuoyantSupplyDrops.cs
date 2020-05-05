@@ -51,7 +51,7 @@ namespace Oxide.Plugins
             void Awake()
             {
                 _drop = GetComponent<SupplyDrop>();
-                if(_drop == null)
+                if (_drop == null)
                 {
                     Destroy(this);
                     return;
