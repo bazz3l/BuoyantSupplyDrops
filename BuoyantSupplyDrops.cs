@@ -7,11 +7,11 @@ namespace Oxide.Plugins
     class BuoyantSupplyDrops : RustPlugin
     {
         #region Fields
-        public PluginConfig _config;
+        PluginConfig _config;
         #endregion
 
         #region Config
-        public PluginConfig GetDefaultConfig()
+        PluginConfig GetDefaultConfig()
         {
             return new PluginConfig
             {
@@ -19,7 +19,7 @@ namespace Oxide.Plugins
             };
         }
 
-        public class PluginConfig
+        class PluginConfig
         {
             public int DetectionRate;
         }
