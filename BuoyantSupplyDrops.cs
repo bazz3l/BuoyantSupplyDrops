@@ -2,18 +2,20 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("Buoyant Supply Drops", "Bazz3l", "1.0.2")]
-    [Description("Allows supply drops to float on water")]
+    [Info("Buoyant Supply Drops", "Bazz3l", "1.0.3")]
+    [Description("Allows supply drops to float on water.")]
     class BuoyantSupplyDrops : RustPlugin
     {
-        #region Config
-        public PluginConfig config;
+        #region Fields
+        public PluginConfig _config;
+        #endregion
 
+        #region Config
         public PluginConfig GetDefaultConfig()
         {
             return new PluginConfig
             {
-                DetectionRate = 1,
+                DetectionRate = 5,
             };
         }
 
@@ -28,56 +30,55 @@ namespace Oxide.Plugins
 
         void Init()
         {
-            config = Config.ReadObject<PluginConfig>();
+            _config = Config.ReadObject<PluginConfig>();
         }
 
         void OnEntitySpawned(SupplyDrop supply)
         {
-            if (supply == null) return;
-            MakeBuoyant sfloat   = supply.gameObject.AddComponent<MakeBuoyant>();
-            sfloat.buoyancyScale = 1f;
-            sfloat.detectionRate = config.DetectionRate;
+            BuoyantComponent sfloat = supply.gameObject.AddComponent<BuoyantComponent>();
+            sfloat.BuoyancyScale = 1f;
+            sfloat.DetectionRate = _config.DetectionRate;
         }
         #endregion
 
         #region Classes
-        class MakeBuoyant : MonoBehaviour
+        class BuoyantComponent : MonoBehaviour
         {
-            public float buoyancyScale;
-            public int detectionRate;
-            private SupplyDrop supplyDrop;
+            public float BuoyancyScale;
+            public int DetectionRate;
+            SupplyDrop _drop;
 
             void Awake()
             {
-                supplyDrop = GetComponent<SupplyDrop>();
-                if(supplyDrop == null) Destroy(this);
-            }
-
-            void FixedUpdate()
-            {
-                if(supplyDrop == null)
+                _drop = GetComponent<SupplyDrop>();
+                if(_drop == null)
                 {
                     Destroy(this);
                     return;
                 }
-                
-                if (UnityEngine.Time.frameCount % detectionRate == 0 && WaterLevel.Factor(supplyDrop.WorldSpaceBounds().ToBounds()) > 0.65f)
+            }
+
+            void FixedUpdate()
+            {
+                if (_drop != null && UnityEngine.Time.frameCount % DetectionRate == 0 && WaterLevel.Factor(_drop.WorldSpaceBounds().ToBounds()) > 0.65f)
                 {
-                    supplyDrop.RemoveParachute();
-                    supplyDrop.MakeLootable();
+                    _drop.RemoveParachute();
+                    _drop.MakeLootable();
+
                     BuoyancyComponent();
+
                     Destroy(this);
                 }
             }
 
             void BuoyancyComponent()
             {
-                Buoyancy buoyancy                  = gameObject.AddComponent<Buoyancy>();
-                buoyancy.buoyancyScale             = buoyancyScale;
-                buoyancy.rigidBody                 = gameObject.GetComponent<Rigidbody>();
-                buoyancy.rigidBody.velocity        = Vector3.zero;
+                Buoyancy buoyancy = gameObject.AddComponent<Buoyancy>();
+                buoyancy.buoyancyScale = BuoyancyScale;
+                buoyancy.rigidBody = gameObject.GetComponent<Rigidbody>();
+                buoyancy.rigidBody.velocity = Vector3.zero;
                 buoyancy.rigidBody.angularVelocity = Vector3.zero;
-                buoyancy.rigidBody.constraints     = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezeRotationX;
+                buoyancy.rigidBody.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezeRotationX;
             }
         }
         #endregion
